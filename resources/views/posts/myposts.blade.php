@@ -1,30 +1,52 @@
 <x-app-layout>  
     <x-slot name="header">
-        <div class="flex justify-between items-center">
+        <div class="flex items-center justify-between">
             <h2 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-400 to-blue-400 drop-shadow-2xl">
-                {{ __('Dashboard') }}
+                {{ __('My Posts') }}
             </h2>
 
-            <!-- Гамбургер меню -->
-            <div x-data="{ open: false }" class="relative">
-                <button @click="open = !open" class="p-2 rounded bg-gray-700 text-white focus:outline-none">
-                    &#9776; <!-- простий гамбургер -->
-                </button>
-
-                <div x-show="open" @click.away="open = false"
-                     class="absolute right-0 mt-2 w-48 bg-gray-800 rounded-xl shadow-lg z-50 space-y-1 p-2">
-                    <a href="{{ route('posts.create') }}" class="btn-custom btn-purple">Create Post</a>
-                    <a href="#feed" class="btn-custom btn-purple">View Feed</a>
-                    <a href="{{ route('posts.my') }}" class="btn-custom btn-purple">My Posts</a>
-                </div>
-            </div>
+            <!-- Кнопка повернення на дашборд -->
+            <a href="{{ route('dashboard') }}" class="flex items-center gap-2 text-white bg-gray-700 px-4 py-2 rounded-xl hover:bg-gray-600 transition">
+                &#8592; Dashboard
+            </a>
         </div>
     </x-slot>
 
     <div class="py-12 max-w-5xl mx-auto space-y-8 px-4">
-        <!-- Стрічка постів -->
+
+        <!-- Форма пошуку -->
+        <div class="bg-gray-800 bg-opacity-50 backdrop-blur-md p-6 rounded-xl shadow-lg">
+            <form method="GET" action="{{ route('posts.my') }}" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                
+                <!-- Пошук за назвою -->
+                <div class="flex flex-col">
+                    <label class="text-gray-200 font-semibold mb-1">Search by Title</label>
+                    <input type="text" name="title" value="{{ request('title') }}" placeholder="Enter title" class="p-2 rounded bg-gray-900 text-white border border-gray-700 focus:ring-2 focus:ring-purple-500">
+                </div>
+
+                <!-- Пошук за точною датою -->
+                <div class="flex flex-col">
+                    <label class="text-gray-200 font-semibold mb-1">Exact Date</label>
+                    <input type="date" name="date" value="{{ request('date') }}" class="p-2 rounded bg-gray-900 text-white border border-gray-700 focus:ring-2 focus:ring-purple-500">
+                </div>
+
+                <!-- Пошук за періодом -->
+                <div class="flex flex-col">
+                    <label class="text-gray-200 font-semibold mb-1">From</label>
+                    <input type="date" name="from" value="{{ request('from') }}" class="p-2 rounded bg-gray-900 text-white border border-gray-700 focus:ring-2 focus:ring-purple-500">
+                </div>
+                <div class="flex flex-col">
+                    <label class="text-gray-200 font-semibold mb-1">To</label>
+                    <input type="date" name="to" value="{{ request('to') }}" class="p-2 rounded bg-gray-900 text-white border border-gray-700 focus:ring-2 focus:ring-purple-500">
+                </div>
+
+                <button type="submit" class="btn-custom btn-purple col-span-full md:col-span-1 mt-2">Search</button>
+            </form>
+        </div>
+
+        <!-- Стрічка моїх постів -->
         <div id="feed" class="space-y-6">
-            @foreach ($posts as $post)
+            @forelse ($posts as $post)
                 <div class="bg-gray-800 bg-opacity-60 backdrop-blur-md p-6 rounded-xl shadow-lg">
                     <h3 class="text-2xl font-extrabold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-400 to-blue-400">{{ $post->title }}</h3>
                     <p class="text-gray-200 mb-4">{{ $post->content }}</p>
@@ -38,19 +60,17 @@
                     </div>
 
                     <div class="flex flex-wrap gap-3 items-center">
-                        <!-- Лайк -->
                         <form action="{{ route('posts.like', $post) }}" method="POST">
                             @csrf
                             <button type="submit" class="btn-custom btn-green">Like ({{ $post->likes->count() }})</button>
                         </form>
 
-                        <!-- Кнопки редагування та видалення для власника -->
                         @can('update', $post)
                             <a href="{{ route('posts.edit', $post) }}" class="btn-custom btn-blue">Edit</a>
                         @endcan
 
                         @can('delete', $post)
-                            <form action="{{ route('posts.destroy', $post) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this post?');">
+                            <form action="{{ route('posts.destroy', $post) }}" method="POST" onsubmit="return confirm('Are you sure?');">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn-custom btn-red">Delete</button>
@@ -58,12 +78,16 @@
                         @endcan
                     </div>
                 </div>
-            @endforeach
+            @empty
+                <div class="bg-gray-700 p-6 rounded-xl text-gray-200 text-center">
+                    No posts found for your search criteria.
+                </div>
+            @endforelse
         </div>
+
     </div>
 
     <style>
-        /* Кнопки */
         .btn-custom {
             position: relative;
             display: inline-block;
@@ -94,10 +118,7 @@
         .btn-red { background: linear-gradient(135deg, #ef4444, #b91c1c); }
         .btn-purple { background: linear-gradient(135deg, #7e22ce, #5b21b6); }
 
-        /* Адаптивність */
         @media (max-width: 768px) { .btn-custom { padding: 0.7rem 1.6rem; font-size: 0.95rem; } }
         @media (max-width: 480px) { .btn-custom { padding: 0.6rem 1.2rem; font-size: 0.9rem; } }
     </style>
-
-    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 </x-app-layout>

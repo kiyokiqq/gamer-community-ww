@@ -11,7 +11,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Тут можна реєструвати сервіси, наприклад:
+        // $this->app->singleton(SomeService::class, function ($app) { ... });
     }
 
     /**
@@ -19,6 +20,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Тут можна додавати глобальні налаштування, макроси, кастомні директиви Blade тощо
+        // Для твоєї системи поки що можна залишити порожнім
     }
 }
