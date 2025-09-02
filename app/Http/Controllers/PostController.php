@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\Storage;
 
 class PostController extends Controller
 {
-    // Доступ тільки для авторизованих користувачів
     public function __construct()
     {
         $this->middleware('auth');
@@ -27,11 +26,12 @@ class PostController extends Controller
         $data = $request->validate([
             'title' => 'required|string|max:255',
             'content' => 'required|string',
-            'image' => 'nullable|image|max:2048',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png,gif|max:5120',
         ]);
 
         if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('posts', 'public');
+            $path = $request->file('image')->store('posts', 'public');
+            $data['image'] = $path;
         }
 
         $request->user()->posts()->create($data);
@@ -54,14 +54,16 @@ class PostController extends Controller
         $data = $request->validate([
             'title' => 'required|string|max:255',
             'content' => 'required|string',
-            'image' => 'nullable|image|max:2048',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png,gif|max:5120',
         ]);
 
         if ($request->hasFile('image')) {
             if ($post->image) {
                 Storage::disk('public')->delete($post->image);
             }
-            $data['image'] = $request->file('image')->store('posts', 'public');
+
+            $path = $request->file('image')->store('posts', 'public');
+            $data['image'] = $path;
         }
 
         $post->update($data);
@@ -97,37 +99,32 @@ class PostController extends Controller
         return redirect()->back();
     }
 
-   public function myPosts(Request $request)
-{
-    $query = auth()->user()->posts(); // Всі пости користувача
+    // Показ власних постів з фільтрами
+    public function myPosts(Request $request)
+    {
+        $query = auth()->user()->posts();
 
-    // Фільтр по назві
-    if ($request->filled('title')) {
-        $query->where('title', 'like', '%' . $request->title . '%');
+        if ($request->filled('title')) {
+            $query->where('title', 'like', '%' . $request->title . '%');
+        }
+
+        if ($request->filled('date')) {
+            $query->whereDate('created_at', $request->date);
+        }
+
+        if ($request->filled('from') && $request->filled('to')) {
+            $query->whereBetween('created_at', [$request->from, $request->to]);
+        }
+
+        $posts = $query->orderBy('created_at', 'desc')->get();
+
+        return view('posts.myposts', compact('posts'));
     }
 
-    // Фільтр по даті (точна)
-    if ($request->filled('date')) {
-        $query->whereDate('created_at', $request->date);
+    // Форма створення поста
+    public function create()
+    {
+        $post = new Post();
+        return view('posts.edit', compact('post'));
     }
-
-    // Фільтр по періоду
-    if ($request->filled('from') && $request->filled('to')) {
-        $query->whereBetween('created_at', [$request->from, $request->to]);
-    }
-
-    $posts = $query->orderBy('created_at', 'desc')->get();
-
-    return view('posts.myposts', compact('posts'));
-}
-
-
-public function create()
-{
-    // Для створення поста використовуємо ту ж view, що і редагування,
-    // але передаємо порожній об'єкт Post
-    $post = new \App\Models\Post();
-    return view('posts.edit', compact('post'));
-}
-
 }

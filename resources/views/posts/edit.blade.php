@@ -1,4 +1,4 @@
-<x-app-layout>  
+<x-app-layout>   
     <x-slot name="header">
         <div class="flex items-center justify-between space-x-4">
             <h2 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-400 to-blue-400 drop-shadow-2xl">
@@ -16,7 +16,7 @@
         </div>
     </x-slot>
 
-    <div class="py-12 max-w-5xl mx-auto">
+    <div class="py-12 max-w-5xl mx-auto px-4">
         <div class="bg-gray-800 bg-opacity-50 backdrop-blur-md p-6 rounded-xl shadow-lg">
             <form 
                 action="{{ $post->exists ? route('posts.update', $post) : route('posts.store') }}" 
@@ -52,9 +52,13 @@
 
                 <div>
                     <label class="block font-semibold text-gray-200">Image (optional)</label>
-                    <input type="file" name="image" class="block w-full text-gray-200">
+                    <input type="file" name="image" class="block w-full text-gray-200 mt-1">
                     @if($post->image)
-                        <img src="{{ asset('storage/' . $post->image) }}" alt="Post image" class="mt-2 max-h-48 w-full object-cover rounded">
+                        <div class="mt-2">
+                            <img src="{{ asset('storage/' . $post->image) }}" 
+                                 alt="Post image" 
+                                 class="w-full max-w-full max-h-96 object-contain rounded shadow-inner border border-gray-700">
+                        </div>
                     @endif
                 </div>
 
@@ -68,7 +72,6 @@
     </div>
 
     <style>
-        /* Кнопки */
         .btn-custom {
             position: relative;
             display: inline-block;
@@ -78,7 +81,7 @@
             border-radius: 2rem;
             text-decoration: none;
             overflow: hidden;
-            transition: box-shadow 0.3s ease, background 0.3s ease;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
         }
         .btn-custom::before {
             content: "";
@@ -93,12 +96,12 @@
         }
         .btn-custom:hover::before { left: 125%; }
         .btn-custom:hover {
+            transform: translateY(-3px) scale(1.05);
             box-shadow: 0 8px 25px rgba(0,0,0,0.4), 0 0 15px rgba(255,255,255,0.08);
         }
 
         .btn-purple { background: linear-gradient(135deg, #7e22ce, #5b21b6); }
 
-        /* Адаптивність */
         @media (max-width: 768px) { .btn-custom { padding: 0.7rem 1.6rem; font-size: 0.95rem; } }
         @media (max-width: 480px) { .btn-custom { padding: 0.6rem 1.2rem; font-size: 0.9rem; } }
     </style>

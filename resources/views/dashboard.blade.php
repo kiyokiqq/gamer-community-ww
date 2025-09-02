@@ -1,4 +1,4 @@
-<x-app-layout>  
+<x-app-layout>   
     <x-slot name="header">
         <div class="flex justify-between items-center">
             <h2 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-400 to-blue-400 drop-shadow-2xl">
@@ -8,7 +8,7 @@
             <!-- Гамбургер меню -->
             <div x-data="{ open: false }" class="relative">
                 <button @click="open = !open" class="p-2 rounded bg-gray-700 text-white focus:outline-none">
-                    &#9776; <!-- простий гамбургер -->
+                    &#9776;
                 </button>
 
                 <div x-show="open" @click.away="open = false"
@@ -22,15 +22,18 @@
     </x-slot>
 
     <div class="py-12 max-w-5xl mx-auto space-y-8 px-4">
+
         <!-- Стрічка постів -->
         <div id="feed" class="space-y-6">
-            @foreach ($posts as $post)
+            @forelse ($posts as $post)
                 <div class="bg-gray-800 bg-opacity-60 backdrop-blur-md p-6 rounded-xl shadow-lg">
                     <h3 class="text-2xl font-extrabold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-400 to-blue-400">{{ $post->title }}</h3>
                     <p class="text-gray-200 mb-4">{{ $post->content }}</p>
 
                     @if($post->image)
-                        <img src="{{ asset('storage/' . $post->image) }}" alt="Post image" class="w-full max-h-64 object-cover rounded-lg mb-4 shadow-inner">
+                        <img src="{{ asset('storage/' . $post->image) }}" 
+                             alt="Post image" 
+                             class="w-full max-h-96 object-contain rounded shadow-inner border border-gray-700 mb-4">
                     @endif
 
                     <div class="text-sm text-gray-400 mb-3">
@@ -58,12 +61,16 @@
                         @endcan
                     </div>
                 </div>
-            @endforeach
+            @empty
+                <div class="bg-gray-700 p-6 rounded-xl text-gray-200 text-center">
+                    No posts yet.
+                </div>
+            @endforelse
         </div>
+
     </div>
 
     <style>
-        /* Кнопки */
         .btn-custom {
             position: relative;
             display: inline-block;
@@ -73,7 +80,7 @@
             border-radius: 2rem;
             text-decoration: none;
             overflow: hidden;
-            transition: box-shadow 0.3s ease, background 0.3s ease;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
         }
         .btn-custom::before {
             content: "";
@@ -87,14 +94,16 @@
             transition: all 0.5s ease;
         }
         .btn-custom:hover::before { left: 125%; }
-        .btn-custom:hover { box-shadow: 0 8px 25px rgba(0,0,0,0.4), 0 0 15px rgba(255,255,255,0.08); }
+        .btn-custom:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.4), 0 0 15px rgba(255,255,255,0.08);
+        }
 
         .btn-green { background: linear-gradient(135deg, #34d399, #059669); }
         .btn-blue { background: linear-gradient(135deg, #6366f1, #4338ca); }
         .btn-red { background: linear-gradient(135deg, #ef4444, #b91c1c); }
         .btn-purple { background: linear-gradient(135deg, #7e22ce, #5b21b6); }
 
-        /* Адаптивність */
         @media (max-width: 768px) { .btn-custom { padding: 0.7rem 1.6rem; font-size: 0.95rem; } }
         @media (max-width: 480px) { .btn-custom { padding: 0.6rem 1.2rem; font-size: 0.9rem; } }
     </style>

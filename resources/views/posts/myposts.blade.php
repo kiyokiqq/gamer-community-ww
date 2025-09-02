@@ -1,11 +1,10 @@
-<x-app-layout>  
+<x-app-layout>   
     <x-slot name="header">
         <div class="flex items-center justify-between">
             <h2 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-400 to-blue-400 drop-shadow-2xl">
                 {{ __('My Posts') }}
             </h2>
 
-            <!-- Кнопка повернення на дашборд -->
             <a href="{{ route('dashboard') }}" class="flex items-center gap-2 text-white bg-gray-700 px-4 py-2 rounded-xl hover:bg-gray-600 transition">
                 &#8592; Dashboard
             </a>
@@ -18,19 +17,16 @@
         <div class="bg-gray-800 bg-opacity-50 backdrop-blur-md p-6 rounded-xl shadow-lg">
             <form method="GET" action="{{ route('posts.my') }}" class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 
-                <!-- Пошук за назвою -->
                 <div class="flex flex-col">
                     <label class="text-gray-200 font-semibold mb-1">Search by Title</label>
                     <input type="text" name="title" value="{{ request('title') }}" placeholder="Enter title" class="p-2 rounded bg-gray-900 text-white border border-gray-700 focus:ring-2 focus:ring-purple-500">
                 </div>
 
-                <!-- Пошук за точною датою -->
                 <div class="flex flex-col">
                     <label class="text-gray-200 font-semibold mb-1">Exact Date</label>
                     <input type="date" name="date" value="{{ request('date') }}" class="p-2 rounded bg-gray-900 text-white border border-gray-700 focus:ring-2 focus:ring-purple-500">
                 </div>
 
-                <!-- Пошук за періодом -->
                 <div class="flex flex-col">
                     <label class="text-gray-200 font-semibold mb-1">From</label>
                     <input type="date" name="from" value="{{ request('from') }}" class="p-2 rounded bg-gray-900 text-white border border-gray-700 focus:ring-2 focus:ring-purple-500">
@@ -52,7 +48,9 @@
                     <p class="text-gray-200 mb-4">{{ $post->content }}</p>
 
                     @if($post->image)
-                        <img src="{{ asset('storage/' . $post->image) }}" alt="Post image" class="w-full max-h-64 object-cover rounded-lg mb-4 shadow-inner">
+                        <img src="{{ asset('storage/' . $post->image) }}" 
+                             alt="Post image" 
+                             class="w-full max-w-full max-h-96 object-contain rounded shadow-inner border border-gray-700 mb-4">
                     @endif
 
                     <div class="text-sm text-gray-400 mb-3">
@@ -97,7 +95,7 @@
             border-radius: 2rem;
             text-decoration: none;
             overflow: hidden;
-            transition: box-shadow 0.3s ease, background 0.3s ease;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
         }
         .btn-custom::before {
             content: "";
@@ -111,7 +109,10 @@
             transition: all 0.5s ease;
         }
         .btn-custom:hover::before { left: 125%; }
-        .btn-custom:hover { box-shadow: 0 8px 25px rgba(0,0,0,0.4), 0 0 15px rgba(255,255,255,0.08); }
+        .btn-custom:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.4), 0 0 15px rgba(255,255,255,0.08);
+        }
 
         .btn-green { background: linear-gradient(135deg, #34d399, #059669); }
         .btn-blue { background: linear-gradient(135deg, #6366f1, #4338ca); }
