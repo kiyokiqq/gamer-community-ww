@@ -38,15 +38,15 @@ class Post extends Model
      * Коментарі до поста
      */
     public function comments()
-    {
-        return $this->hasMany(Comment::class);
-    }
+{
+    return $this->hasMany(Comment::class);
+}
 
     /**
      * Лайки до поста
      */
     public function likes()
-    {
-        return $this->hasMany(Like::class);
-    }
+{
+    return $this->hasMany(\App\Models\Like::class);
+}
 }

@@ -2,59 +2,68 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\ProfileUpdateRequest;
-use Illuminate\Http\RedirectResponse;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Redirect;
-use Illuminate\View\View;
 
 class ProfileController extends Controller
 {
     /**
-     * Display the user's profile form.
+     * Показ профілю будь-якого користувача
+     * Якщо $user не переданий — показує свій профіль
      */
-    public function edit(Request $request): View
+    public function show(User $user = null)
     {
-        return view('profile.edit', [
-            'user' => $request->user(),
-        ]);
-    }
-
-    /**
-     * Update the user's profile information.
-     */
-    public function update(ProfileUpdateRequest $request): RedirectResponse
-    {
-        $request->user()->fill($request->validated());
-
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
+        $user = $user ?? auth()->user();
+        if (!$user) {
+            abort(403, 'Unauthorized action.');
         }
 
-        $request->user()->save();
-
-        return Redirect::route('profile.edit')->with('status', 'profile-updated');
+        return view('profile.show', compact('user'));
     }
 
     /**
-     * Delete the user's account.
+     * Показ свого профілю (окремий маршрут /profile)
      */
-    public function destroy(Request $request): RedirectResponse
+    public function showSelf()
     {
-        $request->validateWithBag('userDeletion', [
-            'password' => ['required', 'current_password'],
+        $user = auth()->user();
+        return view('profile.show', compact('user'));
+    }
+
+    /**
+     * Форма редагування свого профілю
+     */
+    public function edit()
+    {
+        $user = auth()->user();
+        if (!$user) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        return view('profile.edit', compact('user'));
+    }
+
+    /**
+     * Оновлення профілю
+     */
+    public function update(Request $request)
+    {
+        $user = auth()->user();
+        if (!$user) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $validated = $request->validate([
+            'name'  => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users,email,' . $user->id,
+            'city'  => 'nullable|string|max:255',
+            'about' => 'nullable|string|max:1000',
         ]);
 
-        $user = $request->user();
+        $user->update($validated);
 
-        Auth::logout();
-
-        $user->delete();
-
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-
-        return Redirect::to('/');
+        return redirect()->route('profile.show', $user)
+                         ->with('success', 'Profile updated successfully!');
     }
 }

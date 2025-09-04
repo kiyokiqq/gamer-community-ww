@@ -26,7 +26,8 @@ class Like extends Model
      * Пост, який лайкнули
      */
     public function post()
-    {
-        return $this->belongsTo(Post::class);
-    }
+{
+    return $this->belongsTo(Post::class);
+}
+
 }

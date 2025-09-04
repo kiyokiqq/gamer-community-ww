@@ -55,7 +55,9 @@
 
                     <form action="{{ route('posts.like', $post) }}" method="POST">
                         @csrf
-                        <button type="submit" class="btn-custom btn-green">Like ({{ $post->likes->count() }})</button>
+                        <button class="like-btn btn-custom btn-green" data-url="{{ route('posts.like', $post) }}">
+                            👍 Like (<span>{{ $post->likes->count() }}</span>)
+                        </button>
                     </form>
                 </div>
             @empty

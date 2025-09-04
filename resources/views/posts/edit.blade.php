@@ -1,4 +1,4 @@
-<x-app-layout>   
+<x-app-layout>     
     <x-slot name="header">
         <div class="flex items-center justify-between space-x-4">
             <h2 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-400 to-blue-400 drop-shadow-2xl">
@@ -16,8 +16,15 @@
         </div>
     </x-slot>
 
-    <div class="py-12 max-w-5xl mx-auto px-4">
-        <div class="bg-gray-800 bg-opacity-50 backdrop-blur-md p-6 rounded-xl shadow-lg">
+    <div class="py-12 max-w-5xl mx-auto px-4 relative">
+        {{-- Плаваючий банер успіху --}}
+        @if(session('success'))
+            <div id="success-banner" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 p-4 bg-green-600 bg-opacity-80 text-white rounded-xl shadow-xl transition-all duration-500">
+                {{ session('success') }}
+            </div>
+        @endif
+
+        <div class="bg-gray-800 bg-opacity-60 backdrop-blur-md p-6 rounded-xl shadow-xl mt-16">
             <form 
                 action="{{ $post->exists ? route('posts.update', $post) : route('posts.store') }}" 
                 method="POST" 
@@ -44,7 +51,7 @@
                     <label class="block font-semibold text-gray-200">Content</label>
                     <textarea 
                         name="content" 
-                        rows="3" 
+                        rows="5" 
                         class="block w-full border rounded p-2 bg-gray-900 text-white border-gray-700 focus:ring-2 focus:ring-purple-500" 
                         required
                     >{{ old('content', $post->content) }}</textarea>
@@ -99,10 +106,22 @@
             transform: translateY(-3px) scale(1.05);
             box-shadow: 0 8px 25px rgba(0,0,0,0.4), 0 0 15px rgba(255,255,255,0.08);
         }
-
         .btn-purple { background: linear-gradient(135deg, #7e22ce, #5b21b6); }
 
         @media (max-width: 768px) { .btn-custom { padding: 0.7rem 1.6rem; font-size: 0.95rem; } }
         @media (max-width: 480px) { .btn-custom { padding: 0.6rem 1.2rem; font-size: 0.9rem; } }
     </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const banner = document.getElementById('success-banner');
+            if(banner) {
+                setTimeout(() => {
+                    banner.style.opacity = '0';
+                    banner.style.transform = 'translateX(-50%) translateY(-20px)';
+                    setTimeout(() => banner.remove(), 500);
+                }, 3000);
+            }
+        });
+    </script>
 </x-app-layout>

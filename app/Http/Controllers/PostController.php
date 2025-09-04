@@ -1,9 +1,10 @@
-<?php
+<?php 
 
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Post;
+use App\Models\Comment;
 use Illuminate\Support\Facades\Storage;
 
 class PostController extends Controller
@@ -16,8 +17,15 @@ class PostController extends Controller
     // Показ усіх постів на дашборді
     public function index()
     {
-        $posts = Post::with('user', 'likes')->latest()->get();
+        $posts = Post::with('user', 'likes', 'comments.user')->latest()->get();
         return view('dashboard', compact('posts'));
+    }
+
+    // Форма створення поста
+    public function create()
+    {
+        $post = new Post();
+        return view('posts.edit', compact('post'));
     }
 
     // Створення нового поста
@@ -34,9 +42,11 @@ class PostController extends Controller
             $data['image'] = $path;
         }
 
-        $request->user()->posts()->create($data);
+        $post = $request->user()->posts()->create($data);
 
-        return redirect()->back()->with('success', 'Post created successfully!');
+        // Редірект на редагування створеного поста з банером
+        return redirect()->route('posts.edit', $post)
+                         ->with('success', 'Post created successfully!');
     }
 
     // Форма редагування поста
@@ -58,7 +68,7 @@ class PostController extends Controller
         ]);
 
         if ($request->hasFile('image')) {
-            if ($post->image) {
+            if ($post->image && Storage::disk('public')->exists($post->image)) {
                 Storage::disk('public')->delete($post->image);
             }
 
@@ -68,7 +78,9 @@ class PostController extends Controller
 
         $post->update($data);
 
-        return redirect()->route('dashboard')->with('success', 'Post updated successfully!');
+        // Редірект на сторінку редагування з повідомленням
+        return redirect()->route('posts.edit', $post)
+                         ->with('success', 'Post updated successfully!');
     }
 
     // Видалення поста
@@ -76,7 +88,7 @@ class PostController extends Controller
     {
         $this->authorize('delete', $post);
 
-        if ($post->image) {
+        if ($post->image && Storage::disk('public')->exists($post->image)) {
             Storage::disk('public')->delete($post->image);
         }
 
@@ -85,19 +97,24 @@ class PostController extends Controller
         return redirect()->back()->with('success', 'Post deleted successfully!');
     }
 
-    // Лайк/дизлайк поста
-    public function like(Post $post)
-    {
-        $user = auth()->user();
+    // Лайк/дизлайк поста (AJAX)
+public function like(Post $post)
+{
+    $user = auth()->user();
 
-        if ($post->likes()->where('user_id', $user->id)->exists()) {
-            $post->likes()->where('user_id', $user->id)->delete();
-        } else {
-            $post->likes()->create(['user_id' => $user->id]);
-        }
-
-        return redirect()->back();
+    if ($post->likes()->where('user_id', $user->id)->exists()) {
+        $post->likes()->where('user_id', $user->id)->delete();
+        $liked = false;
+    } else {
+        $post->likes()->create(['user_id' => $user->id]);
+        $liked = true;
     }
+
+    return response()->json([
+        'liked' => $liked,
+        'likes_count' => $post->likes()->count(),
+    ]);
+}
 
     // Показ власних постів з фільтрами
     public function myPosts(Request $request)
@@ -121,10 +138,49 @@ class PostController extends Controller
         return view('posts.myposts', compact('posts'));
     }
 
-    // Форма створення поста
-    public function create()
+    // Додавання коментаря до поста
+    public function storeComment(Request $request, Post $post)
     {
-        $post = new Post();
-        return view('posts.edit', compact('post'));
+        $data = $request->validate([
+            'content' => 'required|string|max:500',
+        ]);
+
+        $post->comments()->create([
+            'user_id' => $request->user()->id,
+            'content' => $data['content'],
+        ]);
+
+        return redirect()->back()->with('success', 'Comment added successfully!');
+    }
+
+    // Форма редагування коментаря
+    public function editComment(Comment $comment)
+    {
+        $this->authorize('update', $comment);
+        return view('comments.edit', compact('comment'));
+    }
+
+    // Оновлення коментаря
+    public function updateComment(Request $request, Comment $comment)
+    {
+        $this->authorize('update', $comment);
+
+        $data = $request->validate([
+            'content' => 'required|string|max:500',
+        ]);
+
+        $comment->update($data);
+
+        return redirect()->back()->with('success', 'Comment updated successfully!');
+    }
+
+    // Видалення коментаря
+    public function destroyComment(Comment $comment)
+    {
+        $this->authorize('delete', $comment);
+
+        $comment->delete();
+
+        return redirect()->back()->with('success', 'Comment deleted successfully!');
     }
 }

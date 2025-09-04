@@ -9,23 +9,13 @@ class Comment extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'user_id',
-        'post_id',
-        'content',
-    ];
+    protected $fillable = ['user_id', 'post_id', 'content'];
 
-    /**
-     * Користувач, який написав коментар
-     */
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
-    /**
-     * Пост, до якого належить коментар
-     */
     public function post()
     {
         return $this->belongsTo(Post::class);
